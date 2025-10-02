@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { withAuth } from '@/lib/auth/middleware';
 import { ActivityLog, Client } from '@/lib/models';
 import connectToDatabase from '@/lib/mongodb';
@@ -44,15 +45,16 @@ const addNoteSchema = z.object({
 // GET /api/clients/[id] - Get single client
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authResult = await withAuth()(request);
   if (authResult.response) return authResult.response;
 
   try {
     await connectToDatabase();
+    const { id } = await params;
 
-    const client = await Client.findById(params.id)
+    const client = await Client.findById(id)
       .populate('assignedTo', 'firstName lastName email')
       .populate('notes.createdBy', 'firstName lastName email');
 
@@ -80,7 +82,7 @@ export async function GET(
 // PUT /api/clients/[id] - Update client
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authResult = await withAuth()(request);
   if (authResult.response) return authResult.response;
@@ -88,10 +90,11 @@ export async function PUT(
   try {
     const body = await request.json();
     const validatedData = updateClientSchema.parse(body);
+    const { id } = await params;
 
     await connectToDatabase();
 
-    const client = await Client.findById(params.id);
+    const client = await Client.findById(id);
     if (!client) {
       return NextResponse.json(
         { error: 'Client not found' },
@@ -101,10 +104,10 @@ export async function PUT(
 
     // Convert date strings to Date objects if provided
     if (validatedData.lastContact) {
-      validatedData.lastContact = new Date(validatedData.lastContact);
+      validatedData.lastContact = new Date(validatedData.lastContact).toISOString();
     }
     if (validatedData.nextFollowUp) {
-      validatedData.nextFollowUp = new Date(validatedData.nextFollowUp);
+      validatedData.nextFollowUp = new Date(validatedData.nextFollowUp).toISOString();
     }
 
     // Check if email is being changed and if it's already taken
@@ -127,8 +130,8 @@ export async function PUT(
     await client.populate('assignedTo', 'firstName lastName email');
 
     // Log activity
-    await ActivityLog.createLog(
-      authResult.user!.userId as any,
+    await (ActivityLog as any).createLog(
+      authResult.user!.userId as string,
       'UPDATE_CLIENT',
       'client',
       `Updated client: ${client.firstName} ${client.lastName}`,
@@ -154,7 +157,7 @@ export async function PUT(
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.flatten().fieldErrors },
         { status: 400 }
       );
     }
@@ -169,15 +172,16 @@ export async function PUT(
 // DELETE /api/clients/[id] - Delete client
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authResult = await withAuth(['super_admin', 'admin'])(request);
   if (authResult.response) return authResult.response;
 
   try {
     await connectToDatabase();
+    const { id } = await params;
 
-    const client = await Client.findById(params.id);
+    const client = await Client.findById(id);
     if (!client) {
       return NextResponse.json(
         { error: 'Client not found' },
@@ -186,8 +190,8 @@ export async function DELETE(
     }
 
     // Log deletion activity
-    await ActivityLog.createLog(
-      authResult.user!.userId as any,
+    await (ActivityLog as any).createLog(
+      authResult.user!.userId as string,
       'DELETE_CLIENT',
       'client',
       `Deleted client: ${client.firstName} ${client.lastName}`,
@@ -203,7 +207,7 @@ export async function DELETE(
       }
     );
 
-    await Client.findByIdAndDelete(params.id);
+    await Client.findByIdAndDelete(id);
 
     return NextResponse.json({
       success: true,
@@ -222,7 +226,7 @@ export async function DELETE(
 // POST /api/clients/[id]/notes - Add note to client
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authResult = await withAuth()(request);
   if (authResult.response) return authResult.response;
@@ -230,10 +234,11 @@ export async function POST(
   try {
     const body = await request.json();
     const { content } = addNoteSchema.parse(body);
+    const { id } = await params;
 
     await connectToDatabase();
 
-    const client = await Client.findById(params.id);
+    const client = await Client.findById(id);
     if (!client) {
       return NextResponse.json(
         { error: 'Client not found' },
@@ -255,8 +260,8 @@ export async function POST(
     await client.populate('notes.createdBy', 'firstName lastName email');
 
     // Log activity
-    await ActivityLog.createLog(
-      authResult.user!.userId as any,
+    await (ActivityLog as any).createLog(
+      authResult.user!.userId as string,
       'ADD_CLIENT_NOTE',
       'client',
       `Added note to client: ${client.firstName} ${client.lastName}`,
@@ -281,7 +286,7 @@ export async function POST(
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.flatten().fieldErrors },
         { status: 400 }
       );
     }

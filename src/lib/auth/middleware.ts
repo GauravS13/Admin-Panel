@@ -121,13 +121,13 @@ export function withAuth(allowedRoles?: string[]) {
     if (allowedRoles && allowedRoles.length > 0) {
       const authResult = await authorizeRoles(allowedRoles)(request);
       if (authResult.response) {
-        return { user: null as any, response: authResult.response };
+        return { user: null as unknown as JWTPayload, response: authResult.response };
       }
       return { user: authResult.user!, response: null };
     } else {
       const authResult = await authenticateRequest(request);
       if (authResult.response) {
-        return { user: null as any, response: authResult.response };
+        return { user: null as unknown as JWTPayload, response: authResult.response };
       }
       return { user: authResult.user!, response: null };
     }

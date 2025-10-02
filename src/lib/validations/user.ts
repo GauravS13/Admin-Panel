@@ -26,9 +26,7 @@ export const createUserSchema = z.object({
     .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
       'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'),
 
-  role: z.enum(['super_admin', 'admin', 'staff'], {
-    errorMap: () => ({ message: 'Role must be super_admin, admin, or staff' }),
-  }),
+  role: z.enum(['super_admin', 'admin', 'staff']),
 
   phone: z
     .string()
@@ -66,9 +64,7 @@ export const updateUserSchema = z.object({
     .toLowerCase()
     .optional(),
 
-  role: z.enum(['super_admin', 'admin', 'staff'], {
-    errorMap: () => ({ message: 'Role must be super_admin, admin, or staff' }),
-  }).optional(),
+  role: z.enum(['super_admin', 'admin', 'staff']).optional(),
 
   phone: z
     .string()

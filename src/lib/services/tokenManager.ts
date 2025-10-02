@@ -1,9 +1,10 @@
+import { User } from '../../contexts/AuthContext';
 import { getTokenExpirationTime, isTokenExpired } from '../auth/jwt';
 
 export interface TokenData {
   token: string;
   refreshToken: string;
-  user: any;
+  user: User;
   expiresAt: number;
 }
 
@@ -51,7 +52,7 @@ class TokenManager {
   /**
    * Save tokens to localStorage
    */
-  setTokens(token: string, refreshToken: string, user: any): void {
+  setTokens(token: string, refreshToken: string, user: User): void {
     if (typeof window === 'undefined') return;
 
     try {
@@ -206,7 +207,7 @@ class TokenManager {
   /**
    * Get current user data
    */
-  getCurrentUser(): any | null {
+  getCurrentUser(): User | null {
     const tokens = this.getTokens();
     return tokens?.user || null;
   }

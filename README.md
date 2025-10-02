@@ -1,6 +1,6 @@
-# IT Consultancy Admin Panel
+# Four Eyed Gems Admin Panel
 
-A comprehensive, production-ready admin panel for IT consultancy businesses built with Next.js 14, TypeScript, MongoDB, and shadcn/ui.
+A comprehensive, production-ready admin panel for Four Eyed Gems businesses built with Next.js 14, TypeScript, MongoDB, and shadcn/ui.
 
 ## 🚀 Features
 

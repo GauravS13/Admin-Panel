@@ -1,5 +1,5 @@
 'use client';
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import AdminLayout from '@/components/layout/AdminLayout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -28,13 +28,13 @@ interface DashboardStats {
   monthlyRevenue: number;
 }
 
-interface ChartData {
-  name: string;
-  value: number;
-  inquiries?: number;
-  clients?: number;
-  projects?: number;
-}
+// interface ChartData {
+//   name: string;
+//   value: number;
+//   inquiries?: number;
+//   clients?: number;
+//   projects?: number;
+// }
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -48,7 +48,7 @@ export default function DashboardPage() {
   });
 
   const [loading, setLoading] = useState(true);
-  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [recentActivity, setRecentActivity] = useState<unknown[]>([]);
 
   // Sample data for charts
   const inquiryTrendData = [
@@ -131,7 +131,7 @@ export default function DashboardPage() {
   }: {
     title: string;
     value: string | number;
-    icon: any;
+    icon: React.ComponentType<{ className?: string }>;
     trend?: string;
     color: string;
     description?: string;
@@ -139,7 +139,7 @@ export default function DashboardPage() {
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-gray-600">{title}</CardTitle>
-        <Icon className={`h-4 w-4`} style={{ color }} />
+        <Icon className={`h-4 w-4`}  />
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold" style={{ color }}>{value}</div>
@@ -172,7 +172,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-600 mt-1">Welcome back! Here's what's happening with your business.</p>
+            <p className="text-gray-600 mt-1">Welcome back! Here&apos;s what&apos;s happening with your business.</p>
           </div>
           <Button 
             className="bg-[#4B49AC] hover:bg-[#7978E9]"
@@ -270,7 +270,7 @@ export default function DashboardPage() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, value }) => `${name} ${(value ? value as number * 100 : 0).toFixed(0)}%`}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
@@ -315,7 +315,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {recentActivity.map((activity) => (
+                {recentActivity.map((activity: any) => (
                   <div key={activity.id} className="flex items-start space-x-3">
                     <div className={`w-2 h-2 rounded-full mt-2 ${
                       activity.status === 'unread' ? 'bg-red-500' :
@@ -355,19 +355,35 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+              <Button 
+                variant="outline" 
+                className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-[#4B49AC] hover:text-white transition-colors"
+                onClick={() => router.push('/inquiries')}
+              >
                 <MessageSquare className="w-6 h-6" />
                 <span className="text-sm">New Inquiry</span>
               </Button>
-              <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+              <Button 
+                variant="outline" 
+                className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-[#4B49AC] hover:text-white transition-colors"
+                onClick={() => router.push('/clients')}
+              >
                 <Building className="w-6 h-6" />
                 <span className="text-sm">Add Client</span>
               </Button>
-              <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+              <Button 
+                variant="outline" 
+                className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-[#4B49AC] hover:text-white transition-colors"
+                onClick={() => router.push('/projects')}
+              >
                 <FolderOpen className="w-6 h-6" />
                 <span className="text-sm">New Project</span>
               </Button>
-              <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+              <Button 
+                variant="outline" 
+                className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-[#4B49AC] hover:text-white transition-colors"
+                onClick={() => router.push('/users')}
+              >
                 <Users className="w-6 h-6" />
                 <span className="text-sm">Add User</span>
               </Button>

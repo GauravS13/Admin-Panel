@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { withAuth } from '@/lib/auth/middleware';
 import { ActivityLog, Inquiry } from '@/lib/models';
 import connectToDatabase from '@/lib/mongodb';
@@ -28,12 +29,13 @@ const addNoteSchema = z.object({
 // GET /api/inquiries/[id] - Get single inquiry
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectToDatabase();
+    const { id } = await params;
 
-    const inquiry = await Inquiry.findById(params.id)
+    const inquiry = await Inquiry.findById(id)
       .populate('assignedTo', 'firstName lastName email')
       .populate('notes.createdBy', 'firstName lastName email');
 
@@ -61,7 +63,7 @@ export async function GET(
 // PUT /api/inquiries/[id] - Update inquiry
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authResult = await withAuth()(request);
   if (authResult.response) return authResult.response;
@@ -69,10 +71,11 @@ export async function PUT(
   try {
     const body = await request.json();
     const validatedData = updateInquirySchema.parse(body);
+    const { id } = await params;
 
     await connectToDatabase();
 
-    const inquiry = await Inquiry.findById(params.id);
+    const inquiry = await Inquiry.findById(id);
     if (!inquiry) {
       return NextResponse.json(
         { error: 'Inquiry not found' },
@@ -93,8 +96,8 @@ export async function PUT(
 
     // Log activity if status changed
     if (oldStatus !== newStatus) {
-      await ActivityLog.createLog(
-        authResult.user!.userId as any,
+      await (ActivityLog as any).createLog(
+        authResult.user!.userId as string,
         'UPDATE_INQUIRY_STATUS',
         'inquiry',
         `Changed inquiry status from ${oldStatus} to ${newStatus}`,
@@ -122,7 +125,7 @@ export async function PUT(
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.flatten().fieldErrors },
         { status: 400 }
       );
     }
@@ -137,15 +140,16 @@ export async function PUT(
 // DELETE /api/inquiries/[id] - Delete inquiry
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authResult = await withAuth(['super_admin', 'admin'])(request);
   if (authResult.response) return authResult.response;
 
   try {
     await connectToDatabase();
+    const { id } = await params;
 
-    const inquiry = await Inquiry.findById(params.id);
+    const inquiry = await Inquiry.findById(id);
     if (!inquiry) {
       return NextResponse.json(
         { error: 'Inquiry not found' },
@@ -154,8 +158,8 @@ export async function DELETE(
     }
 
     // Log deletion activity
-    await ActivityLog.createLog(
-      authResult.user!.userId as any,
+    await (ActivityLog as any).createLog(
+      authResult.user!.userId as string,
       'DELETE_INQUIRY',
       'inquiry',
       `Deleted inquiry: ${inquiry.subject}`,
@@ -170,7 +174,7 @@ export async function DELETE(
       }
     );
 
-    await Inquiry.findByIdAndDelete(params.id);
+    await Inquiry.findByIdAndDelete(id);
 
     return NextResponse.json({
       success: true,
@@ -189,7 +193,7 @@ export async function DELETE(
 // POST /api/inquiries/[id]/notes - Add note to inquiry
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authResult = await withAuth()(request);
   if (authResult.response) return authResult.response;
@@ -197,10 +201,11 @@ export async function POST(
   try {
     const body = await request.json();
     const { content } = addNoteSchema.parse(body);
+    const { id } = await params;
 
     await connectToDatabase();
 
-    const inquiry = await Inquiry.findById(params.id);
+    const inquiry = await Inquiry.findById(id);
     if (!inquiry) {
       return NextResponse.json(
         { error: 'Inquiry not found' },
@@ -222,8 +227,8 @@ export async function POST(
     await inquiry.populate('notes.createdBy', 'firstName lastName email');
 
     // Log activity
-    await ActivityLog.createLog(
-      authResult.user!.userId as any,
+    await (ActivityLog as any).createLog(
+      authResult.user!.userId as string,
       'ADD_INQUIRY_NOTE',
       'inquiry',
       `Added note to inquiry: ${inquiry.subject}`,
@@ -248,7 +253,7 @@ export async function POST(
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.flatten().fieldErrors },
         { status: 400 }
       );
     }

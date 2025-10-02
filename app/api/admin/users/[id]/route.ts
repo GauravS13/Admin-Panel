@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { withAuth } from '@/lib/auth/middleware';
 import { ActivityLog, User } from '@/lib/models';
 import connectToDatabase from '@/lib/mongodb';
@@ -24,15 +26,16 @@ const resetPasswordSchema = z.object({
 // GET /api/admin/users/[id] - Get single user
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authResult = await withAuth(['super_admin', 'admin'])(request);
   if (authResult.response) return authResult.response;
 
   try {
     await connectToDatabase();
+    const { id } = await params;
 
-    const user = await User.findById(params.id).select('-password');
+    const user = await User.findById(id).select('-password');
     if (!user) {
       return NextResponse.json(
         { error: 'User not found' },
@@ -42,7 +45,7 @@ export async function GET(
 
     // Check permissions - users can only view their own profile unless they're admin/super_admin
     if (authResult.user!.role !== 'super_admin' && authResult.user!.role !== 'admin' &&
-        authResult.user!.userId !== params.id) {
+        authResult.user!.userId !== id) {
       return NextResponse.json(
         { error: 'Insufficient permissions' },
         { status: 403 }
@@ -66,7 +69,7 @@ export async function GET(
 // PUT /api/admin/users/[id] - Update user
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authResult = await withAuth(['super_admin', 'admin'])(request);
   if (authResult.response) return authResult.response;
@@ -74,10 +77,11 @@ export async function PUT(
   try {
     const body = await request.json();
     const validatedData = updateUserSchema.parse(body);
+    const { id } = await params;
 
     await connectToDatabase();
 
-    const user = await User.findById(params.id);
+    const user = await User.findById(id);
     if (!user) {
       return NextResponse.json(
         { error: 'User not found' },
@@ -88,7 +92,7 @@ export async function PUT(
     // Check permissions
     if (authResult.user!.role !== 'super_admin' && authResult.user!.role !== 'admin') {
       // Regular users can only update their own profile
-      if (authResult.user!.userId !== params.id) {
+      if (authResult.user!.userId !== id) {
         return NextResponse.json(
           { error: 'Insufficient permissions' },
           { status: 403 }
@@ -133,8 +137,8 @@ export async function PUT(
     delete userResponse.password;
 
     // Log activity
-    await ActivityLog.createLog(
-      authResult.user!.userId as any,
+    await (ActivityLog as any).createLog(
+      authResult.user!.userId as string,
       'UPDATE_USER',
       'user',
       `Updated user: ${user.firstName} ${user.lastName}`,
@@ -160,7 +164,7 @@ export async function PUT(
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.flatten().fieldErrors },
         { status: 400 }
       );
     }
@@ -175,15 +179,16 @@ export async function PUT(
 // DELETE /api/admin/users/[id] - Delete user
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authResult = await withAuth(['super_admin', 'admin'])(request);
   if (authResult.response) return authResult.response;
 
   try {
     await connectToDatabase();
+    const { id } = await params;
 
-    const user = await User.findById(params.id);
+    const user = await User.findById(id);
     if (!user) {
       return NextResponse.json(
         { error: 'User not found' },
@@ -200,7 +205,7 @@ export async function DELETE(
     }
 
     // Prevent self-deletion
-    if (authResult.user!.userId === params.id) {
+    if (authResult.user!.userId === id) {
       return NextResponse.json(
         { error: 'Cannot delete your own account' },
         { status: 400 }
@@ -208,8 +213,8 @@ export async function DELETE(
     }
 
     // Log deletion activity
-    await ActivityLog.createLog(
-      authResult.user!.userId as any,
+    await (ActivityLog as any).createLog(
+      authResult.user!.userId as string,
       'DELETE_USER',
       'user',
       `Deleted user: ${user.firstName} ${user.lastName}`,
@@ -225,7 +230,7 @@ export async function DELETE(
       }
     );
 
-    await User.findByIdAndDelete(params.id);
+    await User.findByIdAndDelete(id);
 
     return NextResponse.json({
       success: true,
@@ -244,7 +249,7 @@ export async function DELETE(
 // PATCH /api/admin/users/[id]/reset-password - Reset user password
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authResult = await withAuth(['super_admin', 'admin'])(request);
   if (authResult.response) return authResult.response;
@@ -252,10 +257,11 @@ export async function PATCH(
   try {
     const body = await request.json();
     const { newPassword } = resetPasswordSchema.parse(body);
+    const { id } = await params;
 
     await connectToDatabase();
 
-    const user = await User.findById(params.id);
+    const user = await User.findById(id);
     if (!user) {
       return NextResponse.json(
         { error: 'User not found' },
@@ -268,11 +274,11 @@ export async function PATCH(
     const hashedPassword = await bcrypt.hash(newPassword, salt);
 
     // Update password
-    await User.findByIdAndUpdate(params.id, { password: hashedPassword });
+    await User.findByIdAndUpdate(id, { password: hashedPassword });
 
     // Log activity
-    await ActivityLog.createLog(
-      authResult.user!.userId as any,
+    await (ActivityLog as any).createLog(
+      authResult.user!.userId as string,
       'RESET_PASSWORD',
       'user',
       `Password reset for user: ${user.firstName} ${user.lastName}`,
@@ -296,7 +302,7 @@ export async function PATCH(
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.flatten().fieldErrors },
         { status: 400 }
       );
     }

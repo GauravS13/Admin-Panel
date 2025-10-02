@@ -1,5 +1,6 @@
 'use client';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import AdminLayout from '@/components/layout/AdminLayout';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -47,7 +48,7 @@ import {
   UserCheck,
   UserX,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 interface User {
@@ -102,43 +103,43 @@ export default function UsersPage() {
   });
   const [newPassword, setNewPassword] = useState('');
 
+  
+    const fetchUsers = useCallback(async () => {
+      try {
+        setLoading(true);
+        const queryParams = new URLSearchParams();
+  
+        Object.entries(filters).forEach(([key, value]) => {
+          // Skip "all" values and empty strings when building query params
+          if (value && value !== 'all') {
+            queryParams.append(key, value.toString());
+          }
+        });
+  
+        const response = await fetch(`/api/admin/users?${queryParams}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+  
+        const data = await response.json();
+  
+        if (response.ok) {
+          setUsers(data.data.users);
+          setPagination(data.data.pagination);
+        } else {
+          toast.error(data.error || 'Failed to fetch users');
+        }
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        toast.error('Failed to fetch users');
+      } finally {
+        setLoading(false);
+      }
+    }, [filters]);
   useEffect(() => {
     fetchUsers();
-  }, [filters]);
-
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      const queryParams = new URLSearchParams();
-
-      Object.entries(filters).forEach(([key, value]) => {
-        // Skip "all" values and empty strings when building query params
-        if (value && value !== 'all') {
-          queryParams.append(key, value.toString());
-        }
-      });
-
-      const response = await fetch(`/api/admin/users?${queryParams}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setUsers(data.data.users);
-        setPagination(data.data.pagination);
-      } else {
-        toast.error(data.error || 'Failed to fetch users');
-      }
-    } catch (error) {
-      console.error('Error fetching users:', error);
-      toast.error('Failed to fetch users');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [fetchUsers]);
 
   const handleFilterChange = (key: string, value: string) => {
     // Convert "all" values to empty strings for filtering
@@ -215,7 +216,7 @@ export default function UsersPage() {
 
     try {
       const updateData = { ...formData };
-      delete updateData.password; // Don't update password in edit
+      delete (updateData as any).password; // Don't update password in edit
 
       const response = await fetch(`/api/admin/users/${selectedUser._id}`, {
         method: 'PUT',
@@ -598,7 +599,7 @@ export default function UsersPage() {
 
               <div>
                 <Label htmlFor="role">Role</Label>
-                <Select value={formData.role} onValueChange={(value: any) => setFormData(prev => ({ ...prev, role: value }))}>
+                <Select value={formData.role} onValueChange={(value: string) => setFormData(prev => ({ ...prev, role: value as 'super_admin' | 'admin' | 'staff' }))}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -682,7 +683,7 @@ export default function UsersPage() {
 
               <div>
                 <Label htmlFor="editRole">Role</Label>
-                <Select value={formData.role} onValueChange={(value: any) => setFormData(prev => ({ ...prev, role: value }))}>
+                <Select value={formData.role} onValueChange={(value: string) => setFormData(prev => ({ ...prev, role: value as 'super_admin' | 'admin' | 'staff' }))}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

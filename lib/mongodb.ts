@@ -11,13 +11,16 @@ if (!MONGODB_URI) {
  * in development. This prevents connections growing exponentially
  * during API Route usage.
  */
-let cached = (global as any).mongoose;
+let cached = (global as typeof globalThis & { mongoose?: { conn: unknown; promise: unknown } }).mongoose;
 
 if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
+  cached = (global as typeof globalThis & { mongoose?: { conn: unknown; promise: unknown } }).mongoose = { conn: null, promise: null };
 }
 
 async function connectToDatabase() {
+  if (!cached) {
+    throw new Error('Mongoose cache is not initialized');
+  }
   if (cached.conn) {
     return cached.conn;
   }

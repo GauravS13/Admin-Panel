@@ -15,9 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "IT Consultancy Admin Panel",
-  description: "Comprehensive admin panel for IT consultancy management",
-  keywords: ["admin", "dashboard", "IT consultancy", "management"],
+  title: "Four Eyed Gems",
+  description: "Comprehensive admin panel for Four Eyed Gems management",
+  keywords: ["admin", "dashboard", "Four Eyed Gems", "management"],
 };
 
 export default function RootLayout({

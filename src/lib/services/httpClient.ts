@@ -5,7 +5,7 @@ export interface RequestOptions extends RequestInit {
   retryOnAuthFailure?: boolean;
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
@@ -22,7 +22,7 @@ class HttpClient {
   /**
    * Make HTTP request with automatic token handling
    */
-  async request<T = any>(
+  async request<T = unknown>(
     url: string,
     options: RequestOptions = {}
   ): Promise<ApiResponse<T>> {
@@ -122,14 +122,14 @@ class HttpClient {
   /**
    * GET request
    */
-  async get<T = any>(url: string, options: RequestOptions = {}): Promise<ApiResponse<T>> {
+  async get<T = unknown>(url: string, options: RequestOptions = {}): Promise<ApiResponse<T>> {
     return this.request<T>(url, { ...options, method: 'GET' });
   }
 
   /**
    * POST request
    */
-  async post<T = any>(url: string, data?: any, options: RequestOptions = {}): Promise<ApiResponse<T>> {
+  async post<T = unknown>(url: string, data?: unknown, options: RequestOptions = {}): Promise<ApiResponse<T>> {
     return this.request<T>(url, {
       ...options,
       method: 'POST',
@@ -140,7 +140,7 @@ class HttpClient {
   /**
    * PUT request
    */
-  async put<T = any>(url: string, data?: any, options: RequestOptions = {}): Promise<ApiResponse<T>> {
+  async put<T = unknown>(url: string, data?: unknown, options: RequestOptions = {}): Promise<ApiResponse<T>> {
     return this.request<T>(url, {
       ...options,
       method: 'PUT',
@@ -151,14 +151,14 @@ class HttpClient {
   /**
    * DELETE request
    */
-  async delete<T = any>(url: string, options: RequestOptions = {}): Promise<ApiResponse<T>> {
+  async delete<T = unknown>(url: string, options: RequestOptions = {}): Promise<ApiResponse<T>> {
     return this.request<T>(url, { ...options, method: 'DELETE' });
   }
 
   /**
    * PATCH request
    */
-  async patch<T = any>(url: string, data?: any, options: RequestOptions = {}): Promise<ApiResponse<T>> {
+  async patch<T = unknown>(url: string, data?: unknown, options: RequestOptions = {}): Promise<ApiResponse<T>> {
     return this.request<T>(url, {
       ...options,
       method: 'PATCH',

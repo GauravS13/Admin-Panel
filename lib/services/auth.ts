@@ -1,19 +1,21 @@
 import bcrypt from 'bcryptjs';
 import { generateRefreshToken, generateToken } from '../auth/jwt';
-import { ActivityLog, User } from '../models';
+import ActivityLog from '../models/ActivityLog';
+import mongoose from 'mongoose';
+import { IUser, User } from '../models';
 import connectToDatabase from '../mongodb';
 
 export interface LoginResult {
   success: boolean;
   token?: string;
   refreshToken?: string;
-  user?: any;
+  user?: Omit<IUser, 'password'>;
   error?: string;
 }
 
 export interface RegisterResult {
   success: boolean;
-  user?: any;
+  user?: Omit<IUser, 'password'>;
   error?: string;
 }
 
@@ -50,7 +52,7 @@ export async function loginUser(email: string, password: string): Promise<LoginR
 
     // Log activity
     await ActivityLog.createLog(
-      user._id,
+      new mongoose.Types.ObjectId(user._id),
       'LOGIN',
       'auth',
       'User logged in successfully',
@@ -110,7 +112,7 @@ export async function registerUser(
 
     // Log activity
     await ActivityLog.createLog(
-      createdBy as any,
+      new mongoose.Types.ObjectId(createdBy),
       'CREATE_USER',
       'user',
       `Created new user: ${user.firstName} ${user.lastName}`,
@@ -167,7 +169,7 @@ export async function changePassword(
 
     // Log activity
     await ActivityLog.createLog(
-      userId as any,
+      new mongoose.Types.ObjectId(userId),
       'CHANGE_PASSWORD',
       'auth',
       'Password changed successfully',
@@ -209,7 +211,7 @@ export async function resetUserPassword(
 
     // Log activity
     await ActivityLog.createLog(
-      resetBy as any,
+      new mongoose.Types.ObjectId(resetBy),
       'RESET_PASSWORD',
       'user',
       `Password reset for user: ${user.firstName} ${user.lastName}`,
@@ -274,7 +276,7 @@ export async function updateUserProfile(
 
     // Log activity
     await ActivityLog.createLog(
-      userId as any,
+      new mongoose.Types.ObjectId(userId),
       'UPDATE_PROFILE',
       'user',
       'Profile updated',

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { withAuth } from '@/lib/auth/middleware';
 import { ActivityLog, User } from '@/lib/models';
 import connectToDatabase from '@/lib/mongodb';
@@ -15,16 +16,16 @@ const createUserSchema = z.object({
   department: z.string().max(100).optional(),
 });
 
-// Validation schema for updating users
-const updateUserSchema = z.object({
-  firstName: z.string().min(1).max(50).optional(),
-  lastName: z.string().min(1).max(50).optional(),
-  email: z.string().email().optional(),
-  role: z.enum(['super_admin', 'admin', 'staff']).optional(),
-  phone: z.string().optional(),
-  department: z.string().max(100).optional(),
-  isActive: z.boolean().optional(),
-});
+// Validation schema for updating users (currently unused but kept for future use)
+// const updateUserSchema = z.object({
+//   firstName: z.string().min(1).max(50).optional(),
+//   lastName: z.string().min(1).max(50).optional(),
+//   email: z.string().email().optional(),
+//   role: z.enum(['super_admin', 'admin', 'staff']).optional(),
+//   phone: z.string().optional(),
+//   department: z.string().max(100).optional(),
+//   isActive: z.boolean().optional(),
+// });
 
 // GET /api/admin/users - List all users with filtering and pagination
 export async function GET(request: NextRequest) {
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
     await connectToDatabase();
 
     // Build filter object
-    const filter: any = {};
+    const filter: Record<string, unknown> = {};
     if (search) {
       filter.$or = [
         { firstName: { $regex: search, $options: 'i' } },
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
 
     // Calculate pagination
     const skip = (page - 1) * limit;
-    const sort: any = {};
+    const sort: Record<string, 1 | -1> = {};
     sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
     // Execute query
@@ -142,8 +143,8 @@ export async function POST(request: NextRequest) {
     delete userResponse.password;
 
     // Log activity
-    await ActivityLog.createLog(
-      authResult.user!.userId as any,
+    await (ActivityLog as any).createLog(
+      authResult.user!.userId as string,
       'CREATE_USER',
       'user',
       `Created new user: ${user.firstName} ${user.lastName}`,
@@ -170,7 +171,7 @@ export async function POST(request: NextRequest) {
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.flatten().fieldErrors },
         { status: 400 }
       );
     }

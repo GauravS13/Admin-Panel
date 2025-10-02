@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Model, Schema } from 'mongoose';
 
 export interface IActivityLog extends Document {
   _id: string;
@@ -7,12 +7,29 @@ export interface IActivityLog extends Document {
   resource: string;
   resourceId?: mongoose.Types.ObjectId;
   description: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   ipAddress?: string;
   userAgent?: string;
   severity: 'low' | 'medium' | 'high' | 'critical';
   category: 'auth' | 'user' | 'inquiry' | 'client' | 'project' | 'system' | 'settings';
   createdAt: Date;
+}
+
+export interface IActivityLogModel extends Model<IActivityLog> {
+  createLog(
+    userId: mongoose.Types.ObjectId,
+    action: string,
+    resource: string,
+    description: string,
+    options: {
+      resourceId?: mongoose.Types.ObjectId;
+      metadata?: Record<string, unknown>;
+      ipAddress?: string;
+      userAgent?: string;
+      severity?: 'low' | 'medium' | 'high' | 'critical';
+      category: 'auth' | 'user' | 'inquiry' | 'client' | 'project' | 'system' | 'settings';
+    }
+  ): Promise<IActivityLog>;
 }
 
 const activityLogSchema = new Schema<IActivityLog>(
@@ -95,7 +112,7 @@ activityLogSchema.statics.createLog = async function (
   description: string,
   options: {
     resourceId?: mongoose.Types.ObjectId;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
     ipAddress?: string;
     userAgent?: string;
     severity?: 'low' | 'medium' | 'high' | 'critical';
@@ -118,6 +135,6 @@ activityLogSchema.statics.createLog = async function (
   return this.create(logData);
 };
 
-export default mongoose.models.ActivityLog || mongoose.model<IActivityLog>('ActivityLog', activityLogSchema);
+export default mongoose.models.ActivityLog || mongoose.model<IActivityLog, IActivityLogModel>('ActivityLog', activityLogSchema);
 
 

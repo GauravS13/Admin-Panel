@@ -330,14 +330,14 @@ settingsSchema.statics.getSettings = async function () {
     // Create default settings if none exist
     settings = await this.create({
       company: {
-        name: 'IT Consultancy',
-        email: 'admin@itconsultancy.com',
-        fromEmail: 'noreply@itconsultancy.com',
-        fromName: 'IT Consultancy',
+        name: 'Four Eyed Gems',
+        email: 'admin@foureyedgems.com',
+        fromEmail: 'noreply@foureyedgems.com',
+        fromName: 'Four Eyed Gems',
       },
       email: {
-        fromEmail: 'noreply@itconsultancy.com',
-        fromName: 'IT Consultancy',
+        fromEmail: 'noreply@foureyedgems.com',
+        fromName: 'Four Eyed Gems',
       },
       notifications: {},
       security: {},

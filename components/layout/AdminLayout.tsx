@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -43,15 +43,24 @@ const navigation = [
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
+import type { IUser } from '../../lib/models/User';
+
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, logout } = useAuth() as { user: IUser | null, isAuthenticated: boolean, isLoading: boolean, logout: () => Promise<void> };
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = async () => {
     await logout();
     router.push('/login');
   };
+
+  // Handle redirect to login when not authenticated
+  useEffect(() => {
+    if (!isLoading && (!isAuthenticated || !user)) {
+      router.push('/login');
+    }
+  }, [isLoading, isAuthenticated, user, router]);
 
   if (isLoading) {
     return (
@@ -62,7 +71,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   if (!isAuthenticated || !user) {
-    router.push('/login');
     return null;
   }
 

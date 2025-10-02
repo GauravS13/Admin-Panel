@@ -4,22 +4,22 @@ import AdminLayout from '@/components/layout/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
 import {
-    BarChart3,
-    DollarSign,
-    Download,
-    Filter,
-    FolderOpen,
-    MessageSquare,
-    RefreshCw,
-    TrendingUp,
-    Users
+  BarChart3,
+  DollarSign,
+  Download,
+  Filter,
+  FolderOpen,
+  MessageSquare,
+  RefreshCw,
+  TrendingUp,
+  Users
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -33,14 +33,14 @@ interface ReportData {
   conversionRate: number;
 }
 
-interface ChartData {
-  name: string;
-  value: number;
-  inquiries?: number;
-  clients?: number;
-  projects?: number;
-  revenue?: number;
-}
+// interface ChartData {
+//   name: string;
+//   value: number;
+//   inquiries?: number;
+//   clients?: number;
+//   projects?: number;
+//   revenue?: number;
+// }
 
 export default function ReportsPage() {
   const [reportData, setReportData] = useState<ReportData>({
@@ -128,7 +128,7 @@ export default function ReportsPage() {
   }: {
     title: string;
     value: string | number;
-    icon: any;
+    icon: React.ComponentType<{ className?: string }>;
     trend?: string;
     color: string;
     description?: string;
@@ -136,7 +136,7 @@ export default function ReportsPage() {
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-gray-600">{title}</CardTitle>
-        <Icon className={`h-4 w-4`} style={{ color }} />
+        <Icon className={`h-4 w-4`}/>
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold" style={{ color }}>{value}</div>
@@ -335,7 +335,7 @@ export default function ReportsPage() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, value }) => `${name} ${(parseInt(value as string) * 100).toFixed(0)}%`}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
@@ -386,7 +386,7 @@ export default function ReportsPage() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, value }) => `${name} ${(parseInt(value as string) * 100).toFixed(0)}%`}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"

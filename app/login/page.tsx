@@ -69,9 +69,9 @@ export default function LoginPage() {
       if (error instanceof Error) {
         // Handle Zod validation errors
         if (error.name === 'ZodError') {
-          const zodError = error as any;
+          const zodError = error as unknown as { errors: Array<{ path: string[]; message: string }> };
           const fieldErrors: Record<string, string> = {};
-          zodError.errors.forEach((err: any) => {
+          zodError.errors.forEach((err: { path: string[]; message: string }) => {
             fieldErrors[err.path[0]] = err.message;
           });
           setErrors(fieldErrors);
@@ -104,7 +104,7 @@ export default function LoginPage() {
           </div>
           <CardTitle className="text-2xl font-bold text-gray-900">Welcome Back</CardTitle>
           <CardDescription className="text-gray-600">
-            Sign in to your IT Consultancy Admin Panel
+            Sign in to your Four Eyed Gems Panel
           </CardDescription>
         </CardHeader>
 

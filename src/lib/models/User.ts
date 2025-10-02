@@ -5,7 +5,7 @@ export interface IUser extends Document {
   firstName: string;
   lastName: string;
   email: string;
-  password: string;
+  password?: string;
   role: 'super_admin' | 'admin' | 'staff';
   phone?: string;
   department?: string;
@@ -93,6 +93,9 @@ userSchema.pre('save', async function (next) {
   if (!user.isModified('password')) return next();
 
   try {
+    if (!user.password) {
+      return next(new Error('Password is required'));
+    }
     // Hash password with cost of 12
     const salt = await bcrypt.genSalt(12);
     user.password = await bcrypt.hash(user.password, salt);

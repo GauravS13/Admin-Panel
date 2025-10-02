@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { verifyToken } from '@/lib/auth/jwt';
 import { ActivityLog } from '@/lib/models';
 import connectToDatabase from '@/lib/mongodb';
@@ -16,8 +17,8 @@ export async function POST(request: NextRequest) {
         await connectToDatabase();
         
         // Log logout activity
-        await ActivityLog.createLog(
-          decoded.userId as any,
+        await (ActivityLog as any).createLog(
+          decoded.userId as string,
           'LOGOUT',
           'auth',
           'User logged out',

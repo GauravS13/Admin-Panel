@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import bcrypt from 'bcryptjs';
 import { generateRefreshToken, generateToken } from '../auth/jwt';
 import { ActivityLog, User } from '../models';
@@ -7,13 +8,13 @@ export interface LoginResult {
   success: boolean;
   token?: string;
   refreshToken?: string;
-  user?: any;
+  user?: unknown;
   error?: string;
 }
 
 export interface RegisterResult {
   success: boolean;
-  user?: any;
+  user?: unknown;
   error?: string;
 }
 
@@ -49,7 +50,7 @@ export async function loginUser(email: string, password: string): Promise<LoginR
     await User.findByIdAndUpdate(user._id, { lastLogin: new Date() });
 
     // Log activity
-    await ActivityLog.createLog(
+    await (ActivityLog as any).createLog(
       user._id,
       'LOGIN',
       'auth',
@@ -109,8 +110,8 @@ export async function registerUser(
     await user.save();
 
     // Log activity
-    await ActivityLog.createLog(
-      createdBy as any,
+    await (ActivityLog as any).createLog(
+      createdBy as string,
       'CREATE_USER',
       'user',
       `Created new user: ${user.firstName} ${user.lastName}`,
@@ -166,8 +167,8 @@ export async function changePassword(
     await User.findByIdAndUpdate(userId, { password: hashedPassword });
 
     // Log activity
-    await ActivityLog.createLog(
-      userId as any,
+    await (ActivityLog as any).createLog(
+      userId as string,
       'CHANGE_PASSWORD',
       'auth',
       'Password changed successfully',
@@ -208,8 +209,8 @@ export async function resetUserPassword(
     await User.findByIdAndUpdate(userId, { password: hashedPassword });
 
     // Log activity
-    await ActivityLog.createLog(
-      resetBy as any,
+    await (ActivityLog as any).createLog(
+      resetBy as string,
       'RESET_PASSWORD',
       'user',
       `Password reset for user: ${user.firstName} ${user.lastName}`,
@@ -273,8 +274,8 @@ export async function updateUserProfile(
     );
 
     // Log activity
-    await ActivityLog.createLog(
-      userId as any,
+    await (ActivityLog as any).createLog(
+      userId as string,
       'UPDATE_PROFILE',
       'user',
       'Profile updated',

@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { IUser } from '../models';
+import type { IUser } from '../models/User';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '8h';
@@ -17,16 +17,16 @@ export interface JWTPayload {
  */
 export function generateToken(user: IUser): string {
   const payload: JWTPayload = {
-    userId: user._id.toString(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    userId: (user._id as any).toString(),
     email: user.email,
     role: user.role,
     firstName: user.firstName,
     lastName: user.lastName,
   };
 
-  return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: JWT_EXPIRES_IN,
-  });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return jwt.sign(payload, JWT_SECRET as any, { expiresIn: JWT_EXPIRES_IN } as any);
 }
 
 /**
@@ -36,7 +36,7 @@ export function verifyToken(token: string): JWTPayload | null {
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
     return decoded;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -46,16 +46,16 @@ export function verifyToken(token: string): JWTPayload | null {
  */
 export function generateRefreshToken(user: IUser): string {
   const payload: JWTPayload = {
-    userId: user._id.toString(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    userId: (user._id as any).toString(),
     email: user.email,
     role: user.role,
     firstName: user.firstName,
     lastName: user.lastName,
   };
 
-  return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: '30d', // 30 days
-  });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return jwt.sign(payload, JWT_SECRET as any, { expiresIn: '30d' } as any);
 }
 
 /**
@@ -65,7 +65,7 @@ export function verifyRefreshToken(token: string): JWTPayload | null {
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
     return decoded;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -79,5 +79,31 @@ export function extractTokenFromHeader(authHeader: string | null): string | null
   }
 
   return authHeader.substring(7); // Remove 'Bearer ' prefix
+}
+
+/**
+ * Get token expiration time in milliseconds
+ */
+export function getTokenExpirationTime(token: string): number | null {
+  try {
+    const decoded = jwt.decode(token) as { exp?: number };
+    if (!decoded || !decoded.exp) {
+      return null;
+    }
+    return decoded.exp * 1000; // Convert to milliseconds
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Check if token is expired
+ */
+export function isTokenExpired(token: string): boolean {
+  const expirationTime = getTokenExpirationTime(token);
+  if (!expirationTime) {
+    return true; // If we can't determine expiration, consider it expired
+  }
+  return Date.now() >= expirationTime;
 }
 

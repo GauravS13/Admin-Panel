@@ -45,7 +45,7 @@ import {
     User,
     XCircle,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 interface Inquiry {
@@ -106,6 +106,7 @@ export default function InquiriesPage() {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newNote, setNewNote] = useState('');
   const [editForm, setEditForm] = useState({
     status: '',
@@ -113,12 +114,19 @@ export default function InquiriesPage() {
     category: '',
     assignedTo: '',
   });
+  const [createForm, setCreateForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    company: '',
+    subject: '',
+    message: '',
+    category: '',
+    priority: 'medium' as 'low' | 'medium' | 'high' | 'urgent',
+    source: 'website' as 'website' | 'email' | 'phone' | 'referral' | 'social_media' | 'other',
+  });
 
-  useEffect(() => {
-    fetchInquiries();
-  }, [filters]);
-
-  const fetchInquiries = async () => {
+  const fetchInquiries = useCallback(async () => {
     try {
       setLoading(true);
       const queryParams = new URLSearchParams();
@@ -145,7 +153,11 @@ export default function InquiriesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
+  useEffect(() => {
+    fetchInquiries();
+  }, [fetchInquiries]);
+
 
   const handleFilterChange = (key: string, value: string) => {
     // Convert "all" values to empty strings for filtering
@@ -254,6 +266,42 @@ export default function InquiriesPage() {
     }
   };
 
+  const handleCreateInquiry = async () => {
+    try {
+      const response = await fetch('/api/inquiries', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(createForm),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('Inquiry created successfully');
+        setCreateDialogOpen(false);
+        setCreateForm({
+          name: '',
+          email: '',
+          phone: '',
+          company: '',
+          subject: '',
+          message: '',
+          category: '',
+          priority: 'medium',
+          source: 'website',
+        });
+        fetchInquiries();
+      } else {
+        toast.error(data.error || 'Failed to create inquiry');
+      }
+    } catch (error) {
+      console.error('Error creating inquiry:', error);
+      toast.error('Failed to create inquiry');
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'unread': return 'bg-red-100 text-red-800';
@@ -295,7 +343,10 @@ export default function InquiriesPage() {
             <h1 className="text-3xl font-bold text-gray-900">Inquiries</h1>
             <p className="text-gray-600 mt-1">Manage and respond to customer inquiries</p>
           </div>
-          <Button className="bg-[#4B49AC] hover:bg-[#7978E9]">
+          <Button 
+            className="bg-[#4B49AC] hover:bg-[#7978E9]"
+            onClick={() => setCreateDialogOpen(true)}
+          >
             <Plus className="w-4 h-4 mr-2" />
             New Inquiry
           </Button>
@@ -695,6 +746,135 @@ export default function InquiriesPage() {
               </Button>
               <Button onClick={handleAddNote} disabled={!newNote.trim()}>
                 Add Note
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Create Inquiry Dialog */}
+        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Create New Inquiry</DialogTitle>
+              <DialogDescription>
+                Fill in the details to create a new inquiry
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="name">Name *</Label>
+                  <Input
+                    id="name"
+                    value={createForm.name}
+                    onChange={(e) => setCreateForm(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Enter full name"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="email">Email *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={createForm.email}
+                    onChange={(e) => setCreateForm(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="Enter email address"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input
+                    id="phone"
+                    value={createForm.phone}
+                    onChange={(e) => setCreateForm(prev => ({ ...prev, phone: e.target.value }))}
+                    placeholder="Enter phone number"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="company">Company</Label>
+                  <Input
+                    id="company"
+                    value={createForm.company}
+                    onChange={(e) => setCreateForm(prev => ({ ...prev, company: e.target.value }))}
+                    placeholder="Enter company name"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="subject">Subject *</Label>
+                <Input
+                  id="subject"
+                  value={createForm.subject}
+                  onChange={(e) => setCreateForm(prev => ({ ...prev, subject: e.target.value }))}
+                  placeholder="Enter inquiry subject"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="message">Message *</Label>
+                <Textarea
+                  id="message"
+                  value={createForm.message}
+                  onChange={(e) => setCreateForm(prev => ({ ...prev, message: e.target.value }))}
+                  placeholder="Enter inquiry message"
+                  rows={4}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="category">Category *</Label>
+                  <Input
+                    id="category"
+                    value={createForm.category}
+                    onChange={(e) => setCreateForm(prev => ({ ...prev, category: e.target.value }))}
+                    placeholder="Enter category"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="priority">Priority</Label>
+                  <Select value={createForm.priority} onValueChange={(value) => setCreateForm(prev => ({ ...prev, priority: value as any }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="urgent">Urgent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="source">Source</Label>
+                  <Select value={createForm.source} onValueChange={(value) => setCreateForm(prev => ({ ...prev, source: value as any }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="website">Website</SelectItem>
+                      <SelectItem value="email">Email</SelectItem>
+                      <SelectItem value="phone">Phone</SelectItem>
+                      <SelectItem value="referral">Referral</SelectItem>
+                      <SelectItem value="social_media">Social Media</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleCreateInquiry} disabled={!createForm.name || !createForm.email || !createForm.subject || !createForm.message || !createForm.category}>
+                Create Inquiry
               </Button>
             </DialogFooter>
           </DialogContent>

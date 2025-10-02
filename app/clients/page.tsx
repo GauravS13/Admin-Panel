@@ -45,7 +45,7 @@ import {
   Trash2,
   User
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 interface Client {
@@ -141,11 +141,7 @@ export default function ClientsPage() {
     tags: [] as string[],
   });
 
-  useEffect(() => {
-    fetchClients();
-  }, [filters]);
-
-  const fetchClients = async () => {
+  const fetchClients = useCallback(async () => {
     try {
       setLoading(true);
       const queryParams = new URLSearchParams();
@@ -177,7 +173,13 @@ export default function ClientsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
+
+  useEffect(() => {
+    fetchClients();
+  }, [fetchClients, filters]);
+
+  
 
   const handleFilterChange = (key: string, value: string) => {
     // Convert "all" values to empty strings for filtering
@@ -237,7 +239,7 @@ export default function ClientsPage() {
       website: client.website || '',
       industry: client.industry || '',
       status: client.status,
-      source: client.source as any,
+      source: client.source as 'inquiry' | 'referral' | 'cold_outreach' | 'conference' | 'social_media' | 'other',
       assignedTo: client.assignedTo?._id || '',
       tags: client.tags || [],
     });
@@ -253,7 +255,7 @@ export default function ClientsPage() {
     try {
       // Clean empty address fields
       const cleanAddress = Object.fromEntries(
-        Object.entries(formData.address).filter(([_, value]) => value.trim() !== '')
+        Object.entries(formData.address).filter(([, value]) => value.trim() !== '')
       );
 
       const submitData = {
@@ -292,7 +294,7 @@ export default function ClientsPage() {
     try {
       // Clean empty address fields
       const cleanAddress = Object.fromEntries(
-        Object.entries(formData.address).filter(([_, value]) => value.trim() !== '')
+        Object.entries(formData.address).filter(([, value]) => value.trim() !== '')
       );
 
       const updateData = {
@@ -874,7 +876,7 @@ export default function ClientsPage() {
                 </div>
                 <div>
                   <Label htmlFor="status">Status</Label>
-                  <Select value={formData.status} onValueChange={(value: any) => setFormData(prev => ({ ...prev, status: value }))}>
+                  <Select value={formData.status} onValueChange={(value: 'active' | 'inactive' | 'prospect' | 'former') => setFormData(prev => ({ ...prev, status: value }))}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>

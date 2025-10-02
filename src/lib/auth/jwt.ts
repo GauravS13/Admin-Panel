@@ -17,7 +17,7 @@ export interface JWTPayload {
  */
 export function generateToken(user: IUser): string {
   const payload: JWTPayload = {
-    userId: (user._id as any).toString(),
+    userId: (user._id as string).toString(),
     email: user.email,
     role: user.role,
     firstName: user.firstName,
@@ -36,7 +36,7 @@ export function verifyToken(token: string): JWTPayload | null {
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
     return decoded;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -46,14 +46,14 @@ export function verifyToken(token: string): JWTPayload | null {
  */
 export function isTokenExpired(token: string): boolean {
   try {
-    const decoded = jwt.decode(token) as any;
+    const decoded = jwt.decode(token) as { exp?: number } | null;
     if (!decoded || !decoded.exp) {
       return true;
     }
     
     const currentTime = Math.floor(Date.now() / 1000);
     return decoded.exp < currentTime;
-  } catch (error) {
+  } catch {
     return true;
   }
 }
@@ -63,13 +63,13 @@ export function isTokenExpired(token: string): boolean {
  */
 export function getTokenExpirationTime(token: string): number | null {
   try {
-    const decoded = jwt.decode(token) as any;
+    const decoded = jwt.decode(token) as { exp?: number } | null;
     if (!decoded || !decoded.exp) {
       return null;
     }
     
     return decoded.exp * 1000; // Convert to milliseconds
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -79,7 +79,7 @@ export function getTokenExpirationTime(token: string): number | null {
  */
 export function generateRefreshToken(user: IUser): string {
   const payload: JWTPayload = {
-    userId: (user._id as any).toString(),
+    userId: (user._id as string).toString(),
     email: user.email,
     role: user.role,
     firstName: user.firstName,
@@ -98,7 +98,7 @@ export function verifyRefreshToken(token: string): JWTPayload | null {
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
     return decoded;
-  } catch (error) {
+  } catch {
     return null;
   }
 }

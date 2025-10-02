@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { withAuth } from '@/lib/auth/middleware';
 import { ActivityLog, Client } from '@/lib/models';
 import connectToDatabase from '@/lib/mongodb';
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
     await connectToDatabase();
 
     // Build filter object
-    const filter: any = {};
+    const filter: Record<string, unknown> = {};
     if (search) {
       filter.$or = [
         { firstName: { $regex: search, $options: 'i' } },
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
 
     // Calculate pagination
     const skip = (page - 1) * limit;
-    const sort: any = {};
+    const sort: Record<string, 1 | -1> = {};
     sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
     // Execute query
@@ -132,8 +133,8 @@ export async function POST(request: NextRequest) {
     await client.populate('assignedTo', 'firstName lastName email');
 
     // Log activity
-    await ActivityLog.createLog(
-      authResult.user!.userId as any,
+    await (ActivityLog as any).createLog(
+      authResult.user!.userId as string,
       'CREATE_CLIENT',
       'client',
       `Created new client: ${client.firstName} ${client.lastName}`,
@@ -161,7 +162,7 @@ export async function POST(request: NextRequest) {
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.flatten().fieldErrors },
         { status: 400 }
       );
     }

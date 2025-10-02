@@ -80,12 +80,12 @@ export default function Home() {
       <div className="container mx-auto px-6 py-16">
         <div className="text-center mb-16">
           <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-            IT Consultancy
+            Four Eyed Gems
             <span className="block text-[#F3797E]">Admin Panel</span>
           </h1>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
             A comprehensive, modern admin panel built with Next.js, TypeScript, and MongoDB.
-            Manage your IT consultancy business with powerful analytics and streamlined workflows.
+            Manage your Four Eyed Gems business with powerful analytics and streamlined workflows.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="bg-white text-[#4B49AC] hover:bg-gray-100 text-lg px-8 py-3">
@@ -123,7 +123,7 @@ export default function Home() {
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 mb-16">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-white mb-4">Powerful Features</h2>
-            <p className="text-white/80">Everything you need to manage your IT consultancy business</p>
+            <p className="text-white/80">Everything you need to manage your Four Eyed Gems business</p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div>
@@ -173,7 +173,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="mt-16 py-8 px-6">
         <div className="container mx-auto text-center text-white/60">
-          <p>&copy; 2024 IT Consultancy Admin Panel. Built with Next.js & TypeScript.</p>
+          <p>&copy; 2024 Four Eyed Gems. Built with Next.js & TypeScript.</p>
         </div>
       </footer>
     </div>
